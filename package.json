@@ -4,6 +4,7 @@
   "description": "FlowbitAI Backend API",
   "main": "dist/api/index.js",
   "scripts": {
+    "seed": "tsx seed.ts",
     "dev": "tsx api/index.ts",
     "dev:watch": "tsx watch api/index.ts",
     "start": "tsx api/index.ts",
