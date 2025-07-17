@@ -40,6 +40,8 @@ services:
       JWT_SECRET: "myjwtsecret"
       PORT: 3000
       NODE_ENV: production
+      WEBHOOK_SECRET: "flowbit-webhook-secret"
+      API_URL: "http://api:3000"
     volumes:
       - .:/app
       - /app/node_modules

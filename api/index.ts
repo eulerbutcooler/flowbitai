@@ -15,11 +15,11 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/tickets", ticketRoutes);
-app.use("/api", screenRoutes);
+app.use("/api/screens", screenRoutes);
 
-app.get("/admin/secret", authenticateJWT, requireAdmin, (req, res) => {
+app.get("/api/admin/secret", authenticateJWT, requireAdmin, (req, res) => {
   res.json({ message: "Admin-only route" });
 });
 
