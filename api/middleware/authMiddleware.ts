@@ -23,7 +23,7 @@ export function authenticateJWT(
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
-  if (user.role !== "Admin")
+  if (user.role !== "ADMIN")
     return res.status(403).json({ message: "Admins only" });
   next();
 }

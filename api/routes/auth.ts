@@ -8,14 +8,22 @@ const prisma = new PrismaClient();
 
 router.post("/register", async (req, res) => {
   const { email, password, role, customerId } = req.body;
+  console.log("Registration attempt:", { email, role, customerId });
+  
   const hashed = await bcrypt.hash(password, 10);
   try {
     const user = await prisma.user.create({
       data: { email, password: hashed, role, customerId },
     });
+    console.log("User created successfully:", user.id);
     res.json({ message: "User created", userId: user.id });
-  } catch (e) {
-    res.status(400).json({ error: "Email already exists" });
+  } catch (e: any) {
+    console.error("Registration error:", e);
+    if (e.code === 'P2002') {
+      res.status(400).json({ error: "Email already exists" });
+    } else {
+      res.status(500).json({ error: "Registration failed", details: e.message });
+    }
   }
 });
 

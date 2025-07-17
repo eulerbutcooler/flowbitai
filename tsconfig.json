@@ -15,6 +15,6 @@
     "declaration": false,
     "module": "CommonJS"
   },
-  "include": ["api/**/*", "*.js"],
+  "include": ["api/**/*", "*.js", "seed.ts"],
   "exclude": ["node_modules", "dist", "n8n", "react-shell", "support-app"]
 }

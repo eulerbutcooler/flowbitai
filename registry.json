@@ -1,0 +1,30 @@
+{
+  "tenants": {
+    "rolling-stones": {
+      "name": "Rolling Stones ltd.",
+      "screens": [
+        {
+          "id": "support-tickets",
+          "name": "Support Tickets",
+          "url": "http://localhost:3001/remoteEntry.js",
+          "scope": "supportTicketsApp",
+          "module": "./SupportTicketsApp",
+          "route": "/tickets"
+        }
+      ]
+    },
+    "delhivery": {
+      "name": "Delhivery corp.",
+      "screens": [
+        {
+          "id": "support-tickets",
+          "name": "Support Tickets",
+          "url": "http://localhost:3001/remoteEntry.js",
+          "scope": "supportTicketsApp",
+          "module": "./SupportTicketsApp",
+          "route": "/tickets"
+        }
+      ]
+    }
+  }
+}

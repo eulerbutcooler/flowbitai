@@ -21,14 +21,17 @@ router.post("/", authenticateJWT, async (req, res) => {
       },
     });
 
-    await axios.post("http://n8n:5678/webhook/test", {
-      ticketId: ticket.id,
-      customerId: user.customerId,
-    });
+    try {
+      await axios.post("http://n8n:5678/webhook/test", {
+        ticketId: ticket.id,
+        customerId: user.customerId,
+      });
+    } catch (webhookError: any) {
+      // Webhook failure is non-critical
+    }
 
     res.json({ message: "Ticket created", ticket });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Could not create ticket" });
   }
 });
