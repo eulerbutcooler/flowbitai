@@ -71,7 +71,7 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
         success: true,
         data: [
           {
-            id: "test-ticket-123",
+            _id: "test-ticket-123",
             title: testTicket.title,
             description: testTicket.description,
             priority: testTicket.priority,
@@ -89,7 +89,7 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
       body: {
         message: "Ticket created",
         ticket: {
-          id: "test-ticket-123",
+          _id: "test-ticket-123",
           title: testTicket.title,
           description: testTicket.description,
           priority: testTicket.priority,
@@ -252,6 +252,15 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
   it("should handle empty ticket list gracefully", () => {
     cy.log("Testing Empty Ticket List");
 
+    // Override the tickets mock to return empty array for this test
+    cy.intercept("GET", "**/api/tickets*", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: [],
+      },
+    }).as("getEmptyTickets");
+
     // Login first
     cy.visit("/");
     cy.get("[data-cy=email-input]").type(testUser.email);
@@ -263,7 +272,7 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
 
     // Navigate to support tickets
     cy.get("[data-cy=support-tickets-nav]").click();
-    cy.wait("@getTickets");
+    cy.wait("@getEmptyTickets");
 
     // Verify empty state message
     cy.get("body").should("contain", "No tickets found");
