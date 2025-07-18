@@ -39,40 +39,44 @@ const loadRegistry = (): Registry => {
   }
 };
 
-router.get("/me/screens", authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { customerId } = req.user || {};
-    if (!customerId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
+router.get(
+  "/me/screens",
+  authenticateJWT,
+  (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { customerId } = req.user || {};
+      if (!customerId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
 
-    const registry = loadRegistry();
-    const tenantConfig = registry.tenants[customerId];
+      const registry = loadRegistry();
+      const tenantConfig = registry.tenants[customerId];
 
-    if (!tenantConfig) {
-      return res.json({
+      if (!tenantConfig) {
+        return res.json({
+          success: true,
+          data: {
+            tenant: customerId,
+            screens: [],
+          },
+        });
+      }
+
+      res.json({
         success: true,
         data: {
           tenant: customerId,
-          screens: [],
+          tenantName: tenantConfig.name,
+          screens: tenantConfig.screens,
         },
       });
+    } catch {
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch screens",
+      });
     }
-
-    res.json({
-      success: true,
-      data: {
-        tenant: customerId,
-        tenantName: tenantConfig.name,
-        screens: tenantConfig.screens,
-      },
-    });
-  } catch {
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch screens",
-    });
   }
-});
+);
 
 export default router;

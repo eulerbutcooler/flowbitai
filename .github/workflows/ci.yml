@@ -52,23 +52,10 @@ jobs:
           cd support-app
           npm ci
 
-      - name: Lint API code
+      - name: Lint all code
         run: |
-          # Install ESLint if not already in package.json
-          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-          npx eslint api/ --ext .ts,.js --max-warnings 0
-
-      - name: Lint React Shell
-        run: |
-          cd react-shell
-          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks
-          npx eslint src/ --ext .ts,.tsx,.js,.jsx --max-warnings 0
-
-      - name: Lint Support App
-        run: |
-          cd support-app  
-          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks
-          npx eslint src/ --ext .ts,.tsx,.js,.jsx --max-warnings 0
+          # Run lint with zero warnings tolerance for CI
+          npm run lint:ci
 
       - name: Generate Prisma Client
         run: npx prisma generate

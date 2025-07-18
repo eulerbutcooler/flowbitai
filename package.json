@@ -14,6 +14,7 @@
     "clean": "rm -rf dist",
     "prebuild": "npm run clean",
     "lint": "eslint .",
+    "lint:ci": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "lint:api": "eslint api/",
     "lint:react-shell": "eslint react-shell/src/",

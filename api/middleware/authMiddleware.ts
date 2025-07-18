@@ -26,7 +26,10 @@ export function authenticateJWT(
 
   const token = authHeader.split(" ")[1];
   try {
-    const user = jwt.verify(token, SECRET as string) as AuthenticatedRequest["user"];
+    const user = jwt.verify(
+      token,
+      SECRET as string
+    ) as AuthenticatedRequest["user"];
     req.user = user;
     next();
   } catch {
@@ -34,7 +37,11 @@ export function authenticateJWT(
   }
 }
 
-export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export function requireAdmin(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
   const user = req.user;
   if (!user || user.role !== "ADMIN")
     return res.status(403).json({ message: "Admins only" });
