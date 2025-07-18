@@ -5,7 +5,7 @@ interface Ticket {
   _id: string;
   title: string;
   description: string;
-  status: "open" | "in-progress" | "closed";
+  status: "pending" | "in_progress" | "complete" | "closed";
   priority: "low" | "medium" | "high";
   customerId: string;
   createdAt: string;
@@ -79,11 +79,11 @@ const SupportTicketsApp: React.FC = () => {
 
   const updateTicketStatus = async (
     ticketId: string,
-    newStatus: "open" | "in-progress" | "closed"
+    newStatus: "pending" | "in_progress" | "complete" | "closed"
   ) => {
     try {
-      const response = await api.put<ApiResponse<Ticket>>(
-        `/api/tickets/${ticketId}`,
+      const response = await api.patch<ApiResponse<Ticket>>(
+        `/api/tickets/${ticketId}/status`,
         {
           status: newStatus,
         }
@@ -111,12 +111,14 @@ const SupportTicketsApp: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "open":
-        return "#dc3545";
-      case "in-progress":
+      case "pending":
         return "#ffc107";
-      case "closed":
+      case "in_progress":
+        return "#007bff";
+      case "complete":
         return "#28a745";
+      case "closed":
+        return "#6c757d";
       default:
         return "#6c757d";
     }
@@ -414,7 +416,7 @@ const SupportTicketsApp: React.FC = () => {
                       onChange={(e) =>
                         updateTicketStatus(
                           ticket._id,
-                          e.target.value as "open" | "in-progress" | "closed"
+                          e.target.value as "pending" | "in_progress" | "complete" | "closed"
                         )
                       }
                       style={{
@@ -424,8 +426,9 @@ const SupportTicketsApp: React.FC = () => {
                         fontSize: "12px",
                       }}
                     >
-                      <option value="open">Open</option>
-                      <option value="in-progress">In Progress</option>
+                      <option value="pending">Pending</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="complete">Complete</option>
                       <option value="closed">Closed</option>
                     </select>
                   </div>

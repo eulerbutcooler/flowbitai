@@ -101,16 +101,17 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
       },
     }).as("createTicket");
 
-    cy.intercept("PUT", "**/api/tickets/*", {
+    cy.intercept("PATCH", "**/api/tickets/*/status", {
       statusCode: 200,
       body: {
         success: true,
-        data: {
-          _id: "test-ticket-123",
+        message: "Ticket status updated successfully",
+        ticket: {
+          id: "test-ticket-123",
           title: testTicket.title,
           description: testTicket.description,
           priority: testTicket.priority,
-          status: "in-progress",
+          status: "in_progress",
           customerId: "test-user-123",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -193,13 +194,13 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
     cy.get("[data-cy=ticket-test-ticket-123]").should("be.visible");
     cy.get("[data-cy=status-select]")
       .should("be.visible")
-      .select("in-progress");
+      .select("in_progress");
 
     // Wait for status update
     cy.wait("@updateTicket");
 
     // Verify status was updated
-    cy.get("body").should("contain", "in-progress");
+    cy.get("body").should("contain", "In Progress");
 
     // Step 5: Verify the workflow completed successfully
     cy.log("Step 5: Verify Workflow Completion");
@@ -208,7 +209,7 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
     cy.get("[data-cy=app-loaded]").should("be.visible");
     cy.get("body").should("contain", "Support Tickets");
     cy.get("body").should("contain", testTicket.title);
-    cy.get("body").should("contain", "in-progress");
+    cy.get("body").should("contain", "In Progress");
 
     // Verify the ticket count is updated
     cy.get("body").should("contain", "Your Tickets (1)");
