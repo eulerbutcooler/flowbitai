@@ -1,6 +1,6 @@
 const request = require("supertest");
 
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "flowbit-webhook-secret";
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "test-webhook-secret";
 const API_URL = "http://localhost:3000";
 
 describe("Webhook Integration Tests", () => {
@@ -9,15 +9,17 @@ describe("Webhook Integration Tests", () => {
 
   beforeAll(async () => {
     try {
-      const loginResponse = await request(API_URL).post("/api/auth/login").send({
-        email: "admin@logisticsco.com",
-        password: "admin123",
-      });
-      userToken = loginResponse.body.token;
+      const loginResponse = await request(API_URL)
+        .post("/api/auth/login")
+        .send({
+          email: "admin@logisticsco.com",
+          password: "admin123",
+        });
+      userToken = loginResponse.body.data.token;
     } catch (error) {
       console.log("Login failed:", error.message);
     }
-  }, 30000);
+  });
 
   it("should create a ticket and send webhook", async () => {
     const response = await request(API_URL)
@@ -41,13 +43,13 @@ describe("Webhook Integration Tests", () => {
       .set("x-webhook-secret", WEBHOOK_SECRET)
       .send({
         ticketId: ticketId,
-        status: "completed",
-        customerId: "rolling-stones",
+        status: "complete",
+        customerId: "logisticsco",
       });
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.ticket.status).toBe("completed");
+    expect(response.body.ticket.status).toBe("complete");
   });
 
   it("should reject webhook with wrong secret", async () => {
@@ -56,8 +58,8 @@ describe("Webhook Integration Tests", () => {
       .set("x-webhook-secret", "wrong-secret")
       .send({
         ticketId: ticketId,
-        status: "completed",
-        customerId: "rolling-stones",
+        status: "complete",
+        customerId: "logisticsco",
       });
 
     expect(response.status).toBe(401);
@@ -82,7 +84,7 @@ describe("Webhook Integration Tests", () => {
       .set("x-webhook-secret", WEBHOOK_SECRET)
       .send({
         ticketId: ticketId,
-        status: "completed",
+        status: "complete",
         customerId: "wrong-tenant",
       });
 
@@ -96,7 +98,8 @@ describe("Webhook Integration Tests", () => {
       .set("Authorization", `Bearer ${userToken}`);
 
     expect(response.status).toBe(200);
-    const ticket = response.body.find((t) => t.id === ticketId);
-    expect(ticket.status).toBe("completed");
+    expect(response.body.success).toBe(true);
+    const ticket = response.body.data.find((t) => t.id === ticketId);
+    expect(ticket.status).toBe("complete");
   });
 });

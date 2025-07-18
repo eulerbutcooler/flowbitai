@@ -106,7 +106,7 @@ jobs:
           API_PID=$!
           echo $API_PID > api-server.pid
           echo "API server started with PID: $API_PID"
-          
+
           echo "Waiting for API server to start..."
           for i in {1..30}; do
             if curl -f http://localhost:3000/health >/dev/null 2>&1; then
@@ -116,7 +116,7 @@ jobs:
             echo "Attempt $i: API server not ready yet, waiting..."
             sleep 2
           done
-          
+
           # Final check
           if ! curl -f http://localhost:3000/health; then
             echo "API server failed to start properly"
