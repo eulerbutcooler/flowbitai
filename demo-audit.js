@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // Demo script to show audit logging in action
-const { PrismaClient } = require("@prisma/client");
-const { AuditLogger } = require("./models/AuditLog");
+import { PrismaClient } from "@prisma/client";
+import { AuditLogger } from "./api/models/AuditLog.ts";
 
 const prisma = new PrismaClient();
 

@@ -87,7 +87,16 @@ router.post("/login", async (req, res) => {
     userAgent: req.get("User-Agent"),
   });
 
-  res.json({ token });
+  res.json({
+    success: true,
+    data: { token },
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      customerId: user.customerId,
+    },
+  });
 });
 
 export default router;

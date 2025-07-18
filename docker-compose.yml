@@ -11,6 +11,19 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - ./mongodb/mongodb-keyfile:/data/keyfile:ro
+    command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile"]
+    networks:
+      - flowbitai-network
+
+  mongodb-init:
+    image: mongo:6.0
+    container_name: flowbitai-mongodb-init
+    depends_on:
+      - mongodb
+    volumes:
+      - ./mongodb/init-replica.sh:/init-replica.sh:ro
+    command: ["bash", "/init-replica.sh"]
     networks:
       - flowbitai-network
 
@@ -48,8 +61,23 @@ services:
       N8N_VERSION_NOTIFICATIONS_ENABLED: ${N8N_VERSION_NOTIFICATIONS_ENABLED}
       N8N_TEMPLATES_ENABLED: ${N8N_TEMPLATES_ENABLED}
       WEBHOOK_URL: ${WEBHOOK_URL}
+      N8N_DEFAULT_BINARY_DATA_MODE: filesystem
+      N8N_BINARY_DATA_TTL: 1440
+      N8N_BASIC_AUTH_ACTIVE: false
     volumes:
       - n8n_data:/home/node/.n8n
+    networks:
+      - flowbitai-network
+
+  n8n-init:
+    image: curlimages/curl:latest
+    container_name: flowbitai-n8n-init
+    depends_on:
+      - n8n
+    volumes:
+      - ./n8n/init-workflow.sh:/init-workflow.sh:ro
+      - ./n8n/n8n-workflow.json:/workflows/n8n-workflow.json:ro
+    command: ["sh", "/init-workflow.sh"]
     networks:
       - flowbitai-network
 

@@ -29,17 +29,21 @@ router.post("/", authenticateJWT, async (req, res) => {
       },
     });
 
-    await AuditLogger.logFromRequest(
-      req,
-      "TICKET_CREATED",
-      "ticket",
-      ticket.id,
-      {
-        title,
-        description,
-        status: "pending",
-      }
-    );
+    try {
+      await AuditLogger.logFromRequest(
+        req,
+        "TICKET_CREATED",
+        "ticket",
+        ticket.id,
+        {
+          title,
+          description,
+          status: "pending",
+        }
+      );
+    } catch (auditError) {
+      console.error("Audit logging failed:", auditError);
+    }
 
     try {
       await axios.post("http://n8n:5678/webhook/ticket-created", {
@@ -95,6 +99,16 @@ router.post("/webhook/ticket-done", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // Validate status
+    const validStatuses = ["pending", "in_progress", "complete", "closed"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        error: `Invalid status '${status}'. Must be one of: ${validStatuses.join(
+          ", "
+        )}`,
+      });
+    }
+
     const updatedTicket = await prisma.ticket.update({
       where: {
         id: ticketId,
@@ -129,6 +143,70 @@ router.post("/webhook/ticket-done", async (req, res) => {
       return res.status(404).json({ error: "Ticket not found" });
     }
     res.status(500).json({ error: "Could not update ticket" });
+  }
+});
+
+// Update ticket status
+router.patch("/:id/status", authenticateJWT, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const user = (req as any).user;
+
+  // Validate status
+  const validStatuses = ["pending", "in_progress", "complete", "closed"];
+  if (!status || !validStatuses.includes(status)) {
+    return res.status(400).json({
+      error:
+        "Invalid status. Must be one of: pending, in_progress, complete, closed",
+    });
+  }
+
+  try {
+    const existingTicket = await prisma.ticket.findFirst({
+      where: {
+        id: id,
+        customerId: user.customerId, // Ensure user can only update their own tickets
+      },
+    });
+
+    if (!existingTicket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const updatedTicket = await prisma.ticket.update({
+      where: {
+        id: id,
+      },
+      data: { status },
+    });
+
+    try {
+      await AuditLogger.logFromRequest(
+        req,
+        "TICKET_STATUS_UPDATED",
+        "ticket",
+        id,
+        {
+          previousStatus: existingTicket.status,
+          newStatus: status,
+          source: "manual",
+        }
+      );
+    } catch (auditError) {
+      console.error("Audit logging failed:", auditError);
+    }
+
+    res.json({
+      success: true,
+      message: "Ticket status updated successfully",
+      ticket: updatedTicket,
+    });
+  } catch (err: any) {
+    console.error("Update error:", err);
+    if (err.code === "P2025") {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+    res.status(500).json({ error: "Could not update ticket status" });
   }
 });
 

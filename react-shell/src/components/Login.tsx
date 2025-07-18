@@ -91,9 +91,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         >
           Demo credentials:
           <br />
-          admin@tenant1.com / password (Admin)
+          admin@logisticsco.com / admin123 (LogisticsCo Admin)
           <br />
-          user@tenant2.com / password (User)
+          admin@retailgmbh.com / admin123 (RetailGmbH Admin)
         </div>
       </form>
     </div>

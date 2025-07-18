@@ -30,6 +30,24 @@ docker compose up --build -d
 echo "Waiting for services to start..."
 sleep 15
 
+# Initialize MongoDB replica set
+echo "Initializing MongoDB replica set..."
+docker compose exec mongodb mongosh --username admin --password password --authenticationDatabase admin --eval "
+  try {
+    rs.status();
+    print('Replica set already initialized');
+  } catch(e) {
+    rs.initiate({
+      _id: 'rs0',
+      members: [{ _id: 0, host: 'mongodb:27017' }]
+    });
+    print('Replica set initialized');
+  }
+"
+
+# Wait a bit more for replica set to be ready
+sleep 10
+
 # Seed the database
 echo "Seeding database with tenant data..."
 if [ -f ./seed-db.sh ]; then
@@ -55,7 +73,7 @@ echo ""
 echo "Running audit logging demonstration..."
 echo "========================================"
 sleep 5  # Wait for services to fully start
-node demo-audit.js
+DATABASE_URL="mongodb://localhost:27017/flowbitai" npx tsx demo-audit.js
 echo ""
 echo "To view audit logs via API:"
 echo "  curl http://localhost:3000/api/audit?tenant=logisticsco"

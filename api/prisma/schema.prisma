@@ -45,12 +45,15 @@ model AuditLog {
 
 enum Priority {
   low
+  medium
   high
 }
 
 enum Status {
-  complete
   pending
+  in_progress
+  complete
+  closed
 }
 
 enum Role {

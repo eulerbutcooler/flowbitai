@@ -47,7 +47,7 @@ export class AuditLogger {
 
     await this.log({
       action,
-      userId: user.id || user.email,
+      userId: user.userId || user.id || user.email,
       tenant: user.customerId,
       resourceType,
       resourceId,

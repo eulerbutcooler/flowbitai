@@ -26,7 +26,7 @@ const existingUser = db.User.findOne({ email: email });
 if (!existingUser) {
     db.User.insertOne({
         email: email,
-        password: "$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // admin123
+        password: "$2b$10$QhJDRet.awwK0fS699jh6.NK87dt59yKSfMz/QuQoLuy7aadrDPR6", // admin123
         role: "ADMIN",
         customerId: "logisticsco",
         createdAt: new Date(),
@@ -45,7 +45,7 @@ const existingUser = db.User.findOne({ email: email });
 if (!existingUser) {
     db.User.insertOne({
         email: email,
-        password: "$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // admin123
+        password: "$2b$10$QhJDRet.awwK0fS699jh6.NK87dt59yKSfMz/QuQoLuy7aadrDPR6", // admin123
         role: "ADMIN", 
         customerId: "retailgmbh",
         createdAt: new Date(),
