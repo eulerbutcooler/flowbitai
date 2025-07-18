@@ -20,12 +20,10 @@ describe("Tenant Data Isolation Tests", () => {
       logisticsToken = logisticsLogin.body.data.token;
       adminToken = logisticsLogin.body.data.token; // Use logistics admin as the admin token
 
-      const retailLogin = await request(API_URL)
-        .post("/api/auth/login")
-        .send({
-          email: "admin@retailgmbh.com",
-          password: "admin123",
-        });
+      const retailLogin = await request(API_URL).post("/api/auth/login").send({
+        email: "admin@retailgmbh.com",
+        password: "admin123",
+      });
 
       retailToken = retailLogin.body.data.token;
     } catch (error) {
@@ -75,7 +73,7 @@ describe("Tenant Data Isolation Tests", () => {
       .set("Authorization", `Bearer ${logisticsToken}`);
 
     expect(userResponse.status).toBe(404); // Route doesn't exist, should be 404
-    
+
     const adminResponse = await request(API_URL)
       .get("/admin/secret")
       .set("Authorization", `Bearer ${adminToken}`);

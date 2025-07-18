@@ -19,12 +19,10 @@ describe("Screens API Integration Tests", () => {
 
       logisticsToken = logisticsLogin.body.data.token;
 
-      const retailLogin = await request(API_URL)
-        .post("/api/auth/login")
-        .send({
-          email: "admin@retailgmbh.com",
-          password: "admin123",
-        });
+      const retailLogin = await request(API_URL).post("/api/auth/login").send({
+        email: "admin@retailgmbh.com",
+        password: "admin123",
+      });
 
       retailToken = retailLogin.body.data.token;
 

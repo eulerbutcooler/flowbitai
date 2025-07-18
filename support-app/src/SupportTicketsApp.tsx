@@ -44,10 +44,6 @@ const SupportTicketsApp: React.FC = () => {
     return config;
   });
 
-  useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
-
   const fetchTickets = useCallback(async () => {
     try {
       const response = await api.get<ApiResponse<Ticket[]>>("/api/tickets");
@@ -60,6 +56,10 @@ const SupportTicketsApp: React.FC = () => {
       setLoading(false);
     }
   }, [api]);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
 
   const createTicket = async (e: React.FormEvent) => {
     e.preventDefault();
