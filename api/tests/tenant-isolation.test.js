@@ -1,7 +1,5 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "myjwtsecret";
 const API_URL = "http://localhost:3000";
 
 describe("Tenant Data Isolation Tests", () => {
