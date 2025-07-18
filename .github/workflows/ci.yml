@@ -58,12 +58,16 @@ jobs:
           npm run lint:ci
 
       - name: Generate Prisma Client
-        run: npx prisma generate
+        run: |
+          cd api
+          npx prisma generate
         env:
           DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
 
       - name: Run database migrations
-        run: npx prisma db push
+        run: |
+          cd api
+          npx prisma db push
         env:
           DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
 

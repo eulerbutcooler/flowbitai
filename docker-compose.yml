@@ -76,7 +76,7 @@ services:
       - n8n
     volumes:
       - ./n8n/init-workflow.sh:/init-workflow.sh:ro
-      - ./n8n/n8n-workflow.json:/workflows/n8n-workflow.json:ro
+      - ./n8n-workflow.json:/workflows/n8n-workflow.json:ro
     command: ["sh", "/init-workflow.sh"]
     networks:
       - flowbitai-network

@@ -18,7 +18,14 @@ NODE_ENV=development
 PORT=3000
 DATABASE_URL=mongodb://localhost:27017/flowbitai
 JWT_SECRET=your-secret-key
-N8N_WEBHOOK_URL=http://localhost:5678
+API_URL=http://api:3000
+WEBHOOK_SECRET=flowbit-webhook-secret
+
+# n8n Configuration
+N8N_USER_MANAGEMENT_DISABLED=true
+N8N_DIAGNOSTICS_ENABLED=false
+N8N_VERSION_NOTIFICATIONS_ENABLED=false
+N8N_TEMPLATES_ENABLED=false
 EOF
 fi
 
@@ -56,6 +63,20 @@ else
     npm run seed
 fi
 
+# Wait for n8n workflow initialization
+echo "Waiting for n8n workflow setup..."
+sleep 5
+
+# Check if n8n workflow was created successfully
+echo "Verifying n8n workflow setup..."
+WORKFLOW_CHECK=$(curl -s http://localhost:5678/rest/workflows 2>/dev/null | grep -o '"name":"Ticket Auto-Complete Workflow"' || echo "not found")
+
+if [ "$WORKFLOW_CHECK" != "not found" ]; then
+    echo "✅ n8n workflow 'Ticket Auto-Complete Workflow' is active"
+else
+    echo "⚠️  n8n workflow not found - you may need to check the n8n-init service logs"
+fi
+
 echo ""
 echo "All services started successfully!"
 echo ""
@@ -69,6 +90,10 @@ echo ""
 echo "Demo Credentials:"
 echo "  LogisticsCo Admin: admin@logisticsco.com / admin123"
 echo "  RetailGmbH Admin: admin@retailgmbh.com / admin123"
+echo ""
+echo "n8n Workflow Tools:"
+echo "  - Check status: ./check-n8n-status.sh"
+echo "  - Reset workflow: ./reset-n8n-workflow.sh"
 echo ""
 echo "Running audit logging demonstration..."
 echo "========================================"
