@@ -11,14 +11,14 @@ describe("Tenant Data Isolation Tests", () => {
 
   beforeAll(async () => {
     try {
-      await request(API_URL).post("/auth/register").send({
+      await request(API_URL).post("/api/auth/register").send({
         email: "admin@rolling-stones.com",
         password: "password123",
         customerId: "rolling-stones",
         role: "ADMIN",
       });
 
-      const adminLogin = await request(API_URL).post("/auth/login").send({
+      const adminLogin = await request(API_URL).post("/api/auth/login").send({
         email: "admin@rolling-stones.com",
         password: "password123",
       });
@@ -30,24 +30,24 @@ describe("Tenant Data Isolation Tests", () => {
 
     try {
       const rollingStoneLogin = await request(API_URL)
-        .post("/auth/login")
+        .post("/api/auth/login")
         .send({
-          email: "test@rolling-stones.com",
-          password: "password123",
+          email: "admin@logisticsco.com",
+          password: "admin123",
         });
 
       rollingStoneToken = rollingStoneLogin.body.token;
 
-      const delhiveryLogin = await request(API_URL).post("/auth/login").send({
-        email: "test@delhivery.com",
-        password: "password123",
+      const delhiveryLogin = await request(API_URL).post("/api/auth/login").send({
+        email: "admin@retailgmbh.com",
+        password: "admin123",
       });
 
       delhiveryToken = delhiveryLogin.body.token;
     } catch (error) {
-      console.log("Error getting tokens:", error.message);
+      console.log("Error setting up test tokens:", error);
     }
-  }, 30000);
+  });
 
   it("should isolate tenant data - rolling-stones admin cannot access delhivery screens", async () => {
     const response = await request(API_URL)

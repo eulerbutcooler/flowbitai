@@ -9,53 +9,53 @@ describe("Screens API Integration Tests", () => {
 
   beforeAll(async () => {
     try {
-      await request(API_URL).post("/auth/register").send({
-        email: "test-screens@rolling-stones.com",
+      await request(API_URL).post("/api/auth/register").send({
+        email: "admin@rolling-stones.com",
         password: "password123",
         customerId: "rolling-stones",
-        role: "USER",
+        role: "ADMIN",
       });
 
       const rollingStoneLogin = await request(API_URL)
-        .post("/auth/login")
+        .post("/api/auth/login")
         .send({
-          email: "test-screens@rolling-stones.com",
+          email: "admin@rolling-stones.com",
           password: "password123",
         });
 
       rollingStoneToken = rollingStoneLogin.body.token;
 
-      await request(API_URL).post("/auth/register").send({
-        email: "test-screens@delhivery.com",
+      await request(API_URL).post("/api/auth/register").send({
+        email: "admin@delhivery.com",
         password: "password123",
         customerId: "delhivery",
-        role: "USER",
+        role: "ADMIN",
       });
 
-      const delhiveryLogin = await request(API_URL).post("/auth/login").send({
-        email: "test-screens@delhivery.com",
+      const delhiveryLogin = await request(API_URL).post("/api/auth/login").send({
+        email: "admin@delhivery.com",
         password: "password123",
       });
 
       delhiveryToken = delhiveryLogin.body.token;
 
-      await request(API_URL).post("/auth/register").send({
-        email: "test-screens@unknown.com",
+      await request(API_URL).post("/api/auth/register").send({
+        email: "admin@unknown-tenant.com",
         password: "password123",
         customerId: "unknown-tenant",
-        role: "USER",
+        role: "ADMIN",
       });
 
-      const unknownLogin = await request(API_URL).post("/auth/login").send({
-        email: "test-screens@unknown.com",
+      const unknownLogin = await request(API_URL).post("/api/auth/login").send({
+        email: "admin@unknown-tenant.com",
         password: "password123",
       });
 
       unknownToken = unknownLogin.body.token;
-    } catch {
-      console.log("Users already exist, logging in...");
+    } catch (error) {
+      console.log("Error setting up test users:", error);
     }
-  }, 30000);
+  });
 
   it("should return screens for rolling-stones tenant", async () => {
     const response = await request(API_URL)

@@ -9,9 +9,9 @@ describe("Webhook Integration Tests", () => {
 
   beforeAll(async () => {
     try {
-      const loginResponse = await request(API_URL).post("/auth/login").send({
-        email: "test@rolling-stones.com",
-        password: "password123",
+      const loginResponse = await request(API_URL).post("/api/auth/login").send({
+        email: "admin@logisticsco.com",
+        password: "admin123",
       });
       userToken = loginResponse.body.token;
     } catch (error) {

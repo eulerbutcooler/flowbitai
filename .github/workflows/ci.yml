@@ -99,6 +99,36 @@ jobs:
         env:
           DATABASE_URL: mongodb://localhost:27017/flowbitai?replicaSet=rs0
 
+      - name: Start API Server
+        run: |
+          echo "Starting API server in background..."
+          npm run start &
+          API_PID=$!
+          echo $API_PID > api-server.pid
+          echo "API server started with PID: $API_PID"
+          
+          echo "Waiting for API server to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:3000/health >/dev/null 2>&1; then
+              echo "API server is ready!"
+              break
+            fi
+            echo "Attempt $i: API server not ready yet, waiting..."
+            sleep 2
+          done
+          
+          # Final check
+          if ! curl -f http://localhost:3000/health; then
+            echo "API server failed to start properly"
+            exit 1
+          fi
+        env:
+          DATABASE_URL: mongodb://localhost:27017/flowbitai?replicaSet=rs0
+          JWT_SECRET: test-jwt-secret-key
+          NODE_ENV: test
+          WEBHOOK_SECRET: test-webhook-secret
+          PORT: 3000
+
       - name: Run Jest tests
         run: npm test -- --coverage --watchAll=false
         env:
@@ -106,6 +136,14 @@ jobs:
           JWT_SECRET: test-jwt-secret-key
           NODE_ENV: test
           WEBHOOK_SECRET: test-webhook-secret
+
+      - name: Stop API Server
+        if: always()
+        run: |
+          if [ -f api-server.pid ]; then
+            kill $(cat api-server.pid) || true
+            rm api-server.pid
+          fi
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
