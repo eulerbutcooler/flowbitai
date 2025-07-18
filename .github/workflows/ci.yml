@@ -10,34 +10,44 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      mongodb:
-        image: mongo:6.0
-        env:
-          MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: password
-          MONGO_INITDB_DATABASE: flowbitai
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20.x
           cache: "npm"
+
+      - name: Start MongoDB with Replica Set
+        run: |
+          # Start MongoDB with replica set configuration
+          docker run -d \
+            --name mongodb \
+            -p 27017:27017 \
+            -e MONGO_INITDB_ROOT_USERNAME=admin \
+            -e MONGO_INITDB_ROOT_PASSWORD=password \
+            -e MONGO_INITDB_DATABASE=flowbitai \
+            mongo:6.0 \
+            mongod --replSet rs0 --bind_ip_all
+
+          # Wait for MongoDB to start
+          sleep 10
+
+          # Initialize replica set
+          docker exec mongodb mongosh --eval "
+            rs.initiate({
+              _id: 'rs0',
+              members: [{ _id: 0, host: 'localhost:27017' }]
+            });
+          "
+
+          # Wait for replica set to be ready
+          sleep 15
+
+          # Verify replica set status
+          docker exec mongodb mongosh --eval "rs.status()"
 
       - name: Install dependencies
         run: npm ci
@@ -62,24 +72,24 @@ jobs:
           cd api
           npx prisma generate
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
 
       - name: Run database migrations
         run: |
           cd api
           npx prisma db push
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
 
       - name: Seed database
         run: npx tsx seed.ts
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
 
       - name: Run Jest tests
         run: npm test -- --coverage --watchAll=false
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
           JWT_SECRET: test-jwt-secret-key
           NODE_ENV: test
           WEBHOOK_SECRET: test-webhook-secret
@@ -90,6 +100,12 @@ jobs:
           file: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
+
+      - name: Cleanup MongoDB
+        if: always()
+        run: |
+          docker stop mongodb || true
+          docker rm mongodb || true
 
   e2e-tests:
     runs-on: ubuntu-latest
