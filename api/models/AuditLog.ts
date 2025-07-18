@@ -1,7 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { Request } from "express";
 
 const prisma = new PrismaClient();
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: string;
+    customerId: string;
+    email?: string;
+    id?: string;
+  };
+}
 
 export interface AuditLogData {
   action: string;
@@ -9,7 +18,7 @@ export interface AuditLogData {
   tenant: string;
   resourceType?: string;
   resourceId?: string;
-  details?: any;
+  details?: Prisma.InputJsonValue;
   ipAddress?: string;
   userAgent?: string;
 }
@@ -36,18 +45,18 @@ export class AuditLogger {
   }
 
   static async logFromRequest(
-    req: Request,
+    req: AuthenticatedRequest,
     action: string,
     resourceType?: string,
     resourceId?: string,
-    details?: any
+    details?: Prisma.InputJsonValue
   ) {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user) return;
 
     await this.log({
       action,
-      userId: user.userId || user.id || user.email,
+      userId: user.userId || user.id || user.email || "unknown",
       tenant: user.customerId,
       resourceType,
       resourceId,
@@ -81,7 +90,7 @@ export class AuditLogger {
 
     const skip = (page - 1) * limit;
 
-    const where: any = { tenant };
+    const where: Prisma.AuditLogWhereInput = { tenant };
 
     if (userId) where.userId = userId;
     if (action) where.action = action;

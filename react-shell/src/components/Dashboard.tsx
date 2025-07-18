@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
         <h3>System Overview</h3>
         <p>
           This is the main dashboard where you can see an overview of your
-          tenant's data and activities.
+          tenant&apos;s data and activities.
         </p>
 
         <div style={{ marginTop: "20px" }}>

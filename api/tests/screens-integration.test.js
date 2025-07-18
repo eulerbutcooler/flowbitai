@@ -1,7 +1,5 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "myjwtsecret";
 const API_URL = "http://localhost:3000";
 
 describe("Screens API Integration Tests", () => {
@@ -54,7 +52,7 @@ describe("Screens API Integration Tests", () => {
       });
 
       unknownToken = unknownLogin.body.token;
-    } catch (error) {
+    } catch {
       console.log("Users already exist, logging in...");
     }
   }, 30000);

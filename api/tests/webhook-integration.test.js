@@ -1,7 +1,5 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "myjwtsecret";
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "flowbit-webhook-secret";
 const API_URL = "http://localhost:3000";
 

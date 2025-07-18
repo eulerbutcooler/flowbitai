@@ -23,7 +23,8 @@ export default [
       'cypress/**',
       '**/*.mp4',
       'demo-audit.js',
-      'fix-passwords.js'
+      'fix-passwords.js',
+      'init-replica.js'
     ]
   },
   js.configs.recommended,
@@ -110,10 +111,10 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/no-unescaped-entities': 'warn',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-console': 'warn',
-      'no-unused-vars': 'warn',
+      'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
       'no-undef': 'warn'
     },
     settings: {

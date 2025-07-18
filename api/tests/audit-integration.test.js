@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
-import { PrismaClient } from "@prisma/client";
 import { AuditLogger } from "../models/AuditLog";
 
 describe("Audit Log Integration", () => {
   beforeEach(() => {
-    prisma = new PrismaClient();
+    // Setup code if needed - prisma is used in test cases
   });
 
   it("should create audit log entries for ticket operations", async () => {

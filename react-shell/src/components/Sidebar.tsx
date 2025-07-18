@@ -4,7 +4,7 @@ import { Screen } from "../types";
 interface SidebarProps {
   screens: Screen[];
   activeScreen: string | null;
-  onScreenSelect: (screen: Screen) => void;
+  onScreenSelect: (_screen: Screen) => void;
   tenantName?: string;
 }
 

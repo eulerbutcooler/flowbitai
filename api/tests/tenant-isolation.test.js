@@ -24,7 +24,7 @@ describe("Tenant Data Isolation Tests", () => {
       });
 
       adminToken = adminLogin.body.token;
-    } catch (error) {
+    } catch {
       console.log("Admin user exists, getting token...");
     }
 

@@ -4,6 +4,13 @@ import { authenticateJWT } from "../middleware/authMiddleware";
 import { AuditLogger } from "../models/AuditLog";
 import axios from "axios";
 
+interface AuthenticatedRequest extends express.Request {
+  user?: {
+    userId: string;
+    customerId: string;
+  };
+}
+
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -13,9 +20,13 @@ if (!WEBHOOK_SECRET) {
   throw new Error("WEBHOOK_SECRET environment variable is required");
 }
 
-router.post("/", authenticateJWT, async (req, res) => {
+router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { title, description } = req.body;
-  const user = (req as any).user;
+  const user = req.user;
+
+  if (!user) {
+    return res.status(401).json({ error: "User not authenticated" });
+  }
 
   try {
     const ticket = await prisma.ticket.create({
@@ -54,18 +65,23 @@ router.post("/", authenticateJWT, async (req, res) => {
         }/api/tickets/webhook/ticket-done`,
         webhookSecret: WEBHOOK_SECRET,
       });
-    } catch (_webhookError: any) {
+    } catch (webhookError) {
       // Webhook failure shouldn't prevent ticket creation
+      console.error("Webhook failed:", webhookError);
     }
 
     res.json({ message: "Ticket created", ticket });
-  } catch (_err) {
+  } catch {
     res.status(500).json({ error: "Could not create ticket" });
   }
 });
 
-router.get("/", authenticateJWT, async (req, res) => {
-  const user = (req as any).user;
+router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+
+  if (!user) {
+    return res.status(401).json({ error: "User not authenticated" });
+  }
 
   try {
     const tickets = await prisma.ticket.findMany({
@@ -137,9 +153,9 @@ router.post("/webhook/ticket-done", async (req, res) => {
       message: "Ticket updated successfully",
       ticket: updatedTicket,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Webhook error:", err);
-    if (err.code === "P2025") {
+    if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
       return res.status(404).json({ error: "Ticket not found" });
     }
     res.status(500).json({ error: "Could not update ticket" });
@@ -147,10 +163,14 @@ router.post("/webhook/ticket-done", async (req, res) => {
 });
 
 // Update ticket status
-router.patch("/:id/status", authenticateJWT, async (req, res) => {
+router.patch("/:id/status", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  const user = (req as any).user;
+  const user = req.user;
+
+  if (!user) {
+    return res.status(401).json({ error: "User not authenticated" });
+  }
 
   // Validate status
   const validStatuses = ["pending", "in_progress", "complete", "closed"];
@@ -201,9 +221,9 @@ router.patch("/:id/status", authenticateJWT, async (req, res) => {
       message: "Ticket status updated successfully",
       ticket: updatedTicket,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Update error:", err);
-    if (err.code === "P2025") {
+    if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
       return res.status(404).json({ error: "Ticket not found" });
     }
     res.status(500).json({ error: "Could not update ticket status" });

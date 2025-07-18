@@ -1,3 +1,4 @@
+// MongoDB shell script - 'rs' is a MongoDB shell global
 // Initialize MongoDB replica set
 rs.initiate({
   _id: "rs0",

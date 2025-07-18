@@ -2,11 +2,23 @@ import express from "express";
 import { authenticateJWT, requireAdmin } from "../middleware/authMiddleware";
 import { AuditLogger } from "../models/AuditLog";
 
+interface AuthenticatedRequest extends express.Request {
+  user?: {
+    userId: string;
+    customerId: string;
+    role: string;
+  };
+}
+
 const router = express.Router();
 
-router.get("/", authenticateJWT, async (req, res) => {
+router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
     const {
       page = 1,
       limit = 50,
@@ -43,7 +55,7 @@ router.get("/", authenticateJWT, async (req, res) => {
   }
 });
 
-router.get("/admin/all", authenticateJWT, requireAdmin, async (req, res) => {
+router.get("/admin/all", authenticateJWT, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const {
       page = 1,
@@ -85,16 +97,20 @@ router.get("/admin/all", authenticateJWT, requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/stats", authenticateJWT, async (req, res) => {
+router.get("/stats", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
     const { from, to } = req.query;
 
-    const dateFilter: any = {};
+    const dateFilter: Record<string, unknown> = {};
     if (from || to) {
       dateFilter.timestamp = {};
-      if (from) dateFilter.timestamp.gte = new Date(from as string);
-      if (to) dateFilter.timestamp.lte = new Date(to as string);
+      if (from) (dateFilter.timestamp as Record<string, Date>).gte = new Date(from as string);
+      if (to) (dateFilter.timestamp as Record<string, Date>).lte = new Date(to as string);
     }
 
     const stats = {

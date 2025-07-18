@@ -1,6 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: string;
+    role: string;
+    customerId: string;
+    email?: string;
+  };
+}
+
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -8,7 +17,7 @@ if (!SECRET) {
 }
 
 export function authenticateJWT(
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
@@ -17,17 +26,17 @@ export function authenticateJWT(
 
   const token = authHeader.split(" ")[1];
   try {
-    const user = jwt.verify(token, SECRET as string);
-    (req as any).user = user;
+    const user = jwt.verify(token, SECRET as string) as AuthenticatedRequest["user"];
+    req.user = user;
     next();
-  } catch (_err) {
+  } catch {
     return res.status(403).json({ error: "Invalid token" });
   }
 }
 
-export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  const user = (req as any).user;
-  if (user.role !== "ADMIN")
+export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const user = req.user;
+  if (!user || user.role !== "ADMIN")
     return res.status(403).json({ message: "Admins only" });
   next();
 }

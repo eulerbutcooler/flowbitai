@@ -1,7 +1,13 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { authenticateJWT } from "../middleware/authMiddleware";
 import fs from "fs";
 import path from "path";
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    customerId: string;
+  };
+}
 
 const router = Router();
 
@@ -28,16 +34,19 @@ const loadRegistry = (): Registry => {
     const registryPath = path.join(process.cwd(), "registry.json");
     const registryContent = fs.readFileSync(registryPath, "utf-8");
     return JSON.parse(registryContent);
-  } catch (_error) {
+  } catch {
     return { tenants: {} };
   }
 };
 
-router.get("/me/screens", authenticateJWT, (req, res) => {
+router.get("/me/screens", authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { customerId } = (req as any).user;
-    const registry = loadRegistry();
+    const { customerId } = req.user || {};
+    if (!customerId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
 
+    const registry = loadRegistry();
     const tenantConfig = registry.tenants[customerId];
 
     if (!tenantConfig) {
@@ -58,7 +67,7 @@ router.get("/me/screens", authenticateJWT, (req, res) => {
         screens: tenantConfig.screens,
       },
     });
-  } catch (_error) {
+  } catch {
     res.status(500).json({
       success: false,
       error: "Failed to fetch screens",

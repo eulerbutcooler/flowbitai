@@ -33,14 +33,15 @@ router.post("/register", async (req, res) => {
     });
 
     res.json({ message: "User created", userId: user.id });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Registration error:", e);
-    if (e.code === "P2002") {
+    if (e && typeof e === "object" && "code" in e && e.code === "P2002") {
       res.status(400).json({ error: "Email already exists" });
     } else {
+      const errorMessage = e instanceof Error ? e.message : "Unknown error";
       res
         .status(500)
-        .json({ error: "Registration failed", details: e.message });
+        .json({ error: "Registration failed", details: errorMessage });
     }
   }
 });

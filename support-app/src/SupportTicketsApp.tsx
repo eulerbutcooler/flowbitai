@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 interface Ticket {
@@ -12,7 +12,7 @@ interface Ticket {
   updatedAt: string;
 }
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   success: boolean;
   data: T;
   error?: string;
@@ -46,20 +46,20 @@ const SupportTicketsApp: React.FC = () => {
 
   useEffect(() => {
     fetchTickets();
-  }, []);
+  }, [fetchTickets]);
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     try {
       const response = await api.get<ApiResponse<Ticket[]>>("/api/tickets");
       if (response.data.success) {
         setTickets(response.data.data);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to fetch tickets");
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
 
   const createTicket = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +72,7 @@ const SupportTicketsApp: React.FC = () => {
         setTickets([response.data.data, ...tickets]);
         setNewTicket({ title: "", description: "", priority: "medium" });
       }
-    } catch (err) {
+    } catch {
       setError("Failed to create ticket");
     }
   };
@@ -102,8 +102,9 @@ const SupportTicketsApp: React.FC = () => {
           )
         );
       }
-    } catch (err) {
-      console.error("Error updating ticket status:", err);
+    } catch {
+      // eslint-disable-next-line no-console
+      console.error("Failed to update ticket status");
       setError("Failed to update ticket status");
     }
   };

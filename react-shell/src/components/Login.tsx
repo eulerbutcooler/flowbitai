@@ -24,7 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       } else {
         setError("Login failed");
       }
-    } catch (err) {
+    } catch {
       setError("Invalid credentials");
     } finally {
       setLoading(false);

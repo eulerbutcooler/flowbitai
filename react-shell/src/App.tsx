@@ -31,7 +31,7 @@ const App: React.FC = () => {
             localStorage.removeItem("token");
             setIsAuthenticated(false);
           }
-        } catch (error) {
+        } catch {
           localStorage.removeItem("token");
           setIsAuthenticated(false);
         }
@@ -54,6 +54,7 @@ const App: React.FC = () => {
         setIsAuthenticated(true);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error fetching screens after login:", error);
     }
     setLoading(false);
