@@ -22,18 +22,18 @@ jobs:
 
       - name: Start MongoDB with Replica Set
         run: |
-          # Start MongoDB with replica set configuration
+          # Start MongoDB with replica set configuration (no auth initially)
           docker run -d \
             --name mongodb \
             -p 27017:27017 \
-            -e MONGO_INITDB_ROOT_USERNAME=admin \
-            -e MONGO_INITDB_ROOT_PASSWORD=password \
-            -e MONGO_INITDB_DATABASE=flowbitai \
             mongo:6.0 \
-            mongod --replSet rs0 --bind_ip_all
+            mongod --replSet rs0 --bind_ip_all --noauth
 
           # Wait for MongoDB to start
           sleep 10
+
+          # Check if container is running
+          docker ps
 
           # Initialize replica set
           docker exec mongodb mongosh --eval "
@@ -45,6 +45,15 @@ jobs:
 
           # Wait for replica set to be ready
           sleep 15
+
+          # Create admin user
+          docker exec mongodb mongosh admin --eval "
+            db.createUser({
+              user: 'admin',
+              pwd: 'password',
+              roles: [{ role: 'root', db: 'admin' }]
+            });
+          "
 
           # Verify replica set status
           docker exec mongodb mongosh --eval "rs.status()"
@@ -72,24 +81,28 @@ jobs:
           cd api
           npx prisma generate
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
+          DATABASE_URL: mongodb://localhost:27017/flowbitai?replicaSet=rs0
 
       - name: Run database migrations
         run: |
           cd api
           npx prisma db push
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
+          DATABASE_URL: mongodb://localhost:27017/flowbitai?replicaSet=rs0
 
       - name: Seed database
-        run: npx tsx seed.ts
+        run: |
+          echo "Checking MongoDB status before seeding..."
+          docker exec mongodb mongosh --eval "rs.status()"
+          echo "Starting database seed..."
+          npx tsx seed.ts
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
+          DATABASE_URL: mongodb://localhost:27017/flowbitai?replicaSet=rs0
 
       - name: Run Jest tests
         run: npm test -- --coverage --watchAll=false
         env:
-          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin&replicaSet=rs0
+          DATABASE_URL: mongodb://localhost:27017/flowbitai?replicaSet=rs0
           JWT_SECRET: test-jwt-secret-key
           NODE_ENV: test
           WEBHOOK_SECRET: test-webhook-secret
