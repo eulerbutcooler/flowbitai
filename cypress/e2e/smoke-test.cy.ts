@@ -69,21 +69,32 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
       statusCode: 200,
       body: {
         success: true,
-        data: [],
+        data: [
+          {
+            id: "test-ticket-123",
+            title: testTicket.title,
+            description: testTicket.description,
+            priority: testTicket.priority,
+            status: "pending",
+            customerId: testUser.tenant,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
       },
     }).as("getTickets");
 
     cy.intercept("POST", "**/api/tickets", {
-      statusCode: 201,
+      statusCode: 200,
       body: {
-        success: true,
-        data: {
-          _id: "test-ticket-123",
+        message: "Ticket created",
+        ticket: {
+          id: "test-ticket-123",
           title: testTicket.title,
           description: testTicket.description,
           priority: testTicket.priority,
-          status: "open",
-          customerId: "test-user-123",
+          status: "pending",
+          customerId: testUser.tenant,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -173,7 +184,7 @@ describe("FlowBit.ai Smoke Test - Login → Create Ticket → Status Updates", (
     // Verify ticket was created and appears in the list
     cy.get("body").should("contain", testTicket.title);
     cy.get("body").should("contain", testTicket.description);
-    cy.get("body").should("contain", "open");
+    cy.get("body").should("contain", "pending");
 
     // Step 4: Update ticket status
     cy.log("Step 4: Update Ticket Status");
