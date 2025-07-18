@@ -22,7 +22,7 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "lint": "eslint src/ --ext .ts,.tsx,.js,.jsx",
-    "lint:fix": "eslint src/ --ext .ts,.tsx,.js,.jsx --fix"
+    "lint": "cd .. && npm run lint -- support-app/src/",
+    "lint:fix": "cd .. && npm run lint -- support-app/src/ --fix"
   }
 }

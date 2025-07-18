@@ -10,26 +10,56 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
+# Create .env if it doesn't exist
+if [ ! -f .env ]; then
+    echo "Creating .env file..."
+    cat > .env << EOF
+NODE_ENV=development
+PORT=3000
+DATABASE_URL=mongodb://localhost:27017/flowbitai
+JWT_SECRET=your-secret-key
+N8N_WEBHOOK_URL=http://localhost:5678
+EOF
+fi
+
 # Build and start all services
 echo "Building and starting all services..."
-docker-compose up --build -d
+docker compose up --build -d
 
+# Wait for services to start
+echo "Waiting for services to start..."
+sleep 15
+
+# Seed the database
+echo "Seeding database with tenant data..."
+if [ -f ./seed-db.sh ]; then
+    ./seed-db.sh
+else
+    npm run seed
+fi
+
+echo ""
 echo "All services started successfully!"
 echo ""
-echo "🌐 Services available at:"
-echo "  - React Shell: http://localhost:3000"
-echo "  - Support App: http://localhost:3001"
-echo "  - API: http://localhost:3002"
+echo "Services available at:"
+echo "  - React Shell: http://localhost:3001"
+echo "  - Support App: http://localhost:3002"
+echo "  - API: http://localhost:3000"
 echo "  - n8n: http://localhost:5678"
 echo "  - MongoDB: localhost:27017"
 echo ""
-echo "� Running audit logging demonstration..."
+echo "Demo Credentials:"
+echo "  LogisticsCo Admin: admin@logisticsco.com / admin123"
+echo "  RetailGmbH Admin: admin@retailgmbh.com / admin123"
+echo ""
+echo "Running audit logging demonstration..."
 echo "========================================"
 sleep 5  # Wait for services to fully start
 node demo-audit.js
 echo ""
-echo "� To view audit logs via API:"
-echo "  curl http://localhost:3002/api/audit?tenant=demo-tenant"
+echo "To view audit logs via API:"
+echo "  curl http://localhost:3000/api/audit?tenant=logisticsco"
+echo "  curl http://localhost:3000/api/audit?tenant=retailgmbh"
 echo ""
-echo "To stop all services, run: docker-compose down"
-echo "To view service logs, run: docker-compose logs -f [service-name]"
+echo "To stop all services, run: docker compose down"
+echo "To view service logs, run: docker compose logs -f [service-name]"

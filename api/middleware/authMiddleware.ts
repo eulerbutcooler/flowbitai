@@ -20,8 +20,8 @@ export function authenticateJWT(
     const user = jwt.verify(token, SECRET as string);
     (req as any).user = user;
     next();
-  } catch (err) {
-    res.status(403).json({ message: "Invalid token" });
+  } catch (_err) {
+    return res.status(403).json({ error: "Invalid token" });
   }
 }
 

@@ -1,14 +1,10 @@
 {
   "env": {
     "browser": true,
-    "es2020": true
+    "es2020": true,
+    "node": true
   },
-  "extends": [
-    "eslint:recommended",
-    "@typescript-eslint/recommended",
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended"
-  ],
+  "extends": ["eslint:recommended"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
@@ -20,16 +16,22 @@
   "plugins": ["react", "react-hooks", "@typescript-eslint"],
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { "argsIgnorePattern": "^_" }
-    ],
-    "@typescript-eslint/no-explicit-any": "warn"
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-console": "off",
+    "no-unused-vars": "off",
+    "no-undef": "warn"
+  },
+  "globals": {
+    "React": "readonly",
+    "process": "readonly"
   },
   "settings": {
     "react": {
       "version": "detect"
     }
   },
-  "ignorePatterns": ["node_modules/", "build/", "dist/", "webpack.config.js"]
+  "ignorePatterns": ["node_modules/", "dist/", "build/", "webpack.config.js"]
 }

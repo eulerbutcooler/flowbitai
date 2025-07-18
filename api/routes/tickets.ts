@@ -50,10 +50,12 @@ router.post("/", authenticateJWT, async (req, res) => {
         }/api/tickets/webhook/ticket-done`,
         webhookSecret: WEBHOOK_SECRET,
       });
-    } catch (webhookError: any) {}
+    } catch (_webhookError: any) {
+      // Webhook failure shouldn't prevent ticket creation
+    }
 
     res.json({ message: "Ticket created", ticket });
-  } catch (err) {
+  } catch (_err) {
     res.status(500).json({ error: "Could not create ticket" });
   }
 });

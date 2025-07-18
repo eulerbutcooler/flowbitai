@@ -28,7 +28,7 @@ const loadRegistry = (): Registry => {
     const registryPath = path.join(process.cwd(), "registry.json");
     const registryContent = fs.readFileSync(registryPath, "utf-8");
     return JSON.parse(registryContent);
-  } catch (error) {
+  } catch (_error) {
     return { tenants: {} };
   }
 };
@@ -58,7 +58,7 @@ router.get("/me/screens", authenticateJWT, (req, res) => {
         screens: tenantConfig.screens,
       },
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({
       success: false,
       error: "Failed to fetch screens",

@@ -1,12 +1,8 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
-import request from "supertest";
-import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { AuditLogger } from "../models/AuditLog";
 
 describe("Audit Log Integration", () => {
-  let prisma;
-
   beforeEach(() => {
     prisma = new PrismaClient();
   });
