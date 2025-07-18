@@ -1,0 +1,150 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: password
+          MONGO_INITDB_DATABASE: flowbitai
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install React Shell dependencies
+        run: |
+          cd react-shell
+          npm ci
+
+      - name: Install Support App dependencies
+        run: |
+          cd support-app
+          npm ci
+
+      - name: Lint API code
+        run: |
+          # Install ESLint if not already in package.json
+          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
+          npx eslint api/ --ext .ts,.js --max-warnings 0
+
+      - name: Lint React Shell
+        run: |
+          cd react-shell
+          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks
+          npx eslint src/ --ext .ts,.tsx,.js,.jsx --max-warnings 0
+
+      - name: Lint Support App
+        run: |
+          cd support-app  
+          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks
+          npx eslint src/ --ext .ts,.tsx,.js,.jsx --max-warnings 0
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+
+      - name: Run database migrations
+        run: npx prisma db push
+        env:
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+
+      - name: Seed database
+        run: npx tsx seed.ts
+        env:
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+
+      - name: Run Jest tests
+        run: npm test -- --coverage --watchAll=false
+        env:
+          DATABASE_URL: mongodb://admin:password@localhost:27017/flowbitai?authSource=admin
+          JWT_SECRET: test-jwt-secret-key
+          NODE_ENV: test
+          WEBHOOK_SECRET: test-webhook-secret
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install React dependencies
+        run: |
+          cd react-shell && npm ci
+          cd ../support-app && npm ci
+
+      - name: Start services
+        run: |
+          docker-compose up -d
+          sleep 30  # Wait for services to be ready
+
+      - name: Run Cypress E2E tests
+        run: npm run cypress:run
+        env:
+          CYPRESS_BASE_URL: http://localhost:3001
+
+      - name: Stop services
+        run: docker-compose down
+
+      - name: Upload Cypress videos
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-videos
+          path: cypress/videos
+
+      - name: Upload Cypress screenshots
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots

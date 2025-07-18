@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const SECRET = process.env.JWT_SECRET || "supersecret";
+const SECRET = process.env.JWT_SECRET;
+
+if (!SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 export function authenticateJWT(
   req: Request,
@@ -13,7 +17,7 @@ export function authenticateJWT(
 
   const token = authHeader.split(" ")[1];
   try {
-    const user = jwt.verify(token, SECRET);
+    const user = jwt.verify(token, SECRET as string);
     (req as any).user = user;
     next();
   } catch (err) {

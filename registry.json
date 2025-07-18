@@ -1,26 +1,26 @@
 {
   "tenants": {
-    "rolling-stones": {
-      "name": "Rolling Stones ltd.",
+    "logisticsco": {
+      "name": "LogisticsCo",
       "screens": [
         {
           "id": "support-tickets",
           "name": "Support Tickets",
-          "url": "http://localhost:3001/remoteEntry.js",
-          "scope": "supportTicketsApp",
+          "url": "http://localhost:3002/remoteEntry.js",
+          "scope": "supportApp",
           "module": "./SupportTicketsApp",
           "route": "/tickets"
         }
       ]
     },
-    "delhivery": {
-      "name": "Delhivery corp.",
+    "retailgmbh": {
+      "name": "RetailGmbH",
       "screens": [
         {
           "id": "support-tickets",
           "name": "Support Tickets",
-          "url": "http://localhost:3001/remoteEntry.js",
-          "scope": "supportTicketsApp",
+          "url": "http://localhost:3002/remoteEntry.js",
+          "scope": "supportApp",
           "module": "./SupportTicketsApp",
           "route": "/tickets"
         }

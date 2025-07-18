@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/auth";
 import ticketRoutes from "./routes/tickets";
 import screenRoutes from "./routes/screen";
+import auditRoutes from "./routes/audit";
 import { authenticateJWT, requireAdmin } from "./middleware/authMiddleware";
 
 dotenv.config();
@@ -15,9 +16,15 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/tickets", ticketRoutes);
-app.use("/api/screens", screenRoutes);
+app.use("/api", screenRoutes);
+app.use("/api/audit", auditRoutes);
 
 app.get("/api/admin/secret", authenticateJWT, requireAdmin, (req, res) => {
   res.json({ message: "Admin-only route" });

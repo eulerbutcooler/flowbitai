@@ -1,31 +1,16 @@
-version: "3.8"
-
 services:
   mongodb:
-    image: mongo:7
+    image: mongo:6.0
     container_name: flowbitai-mongodb
     restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: flowbitai
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-    command: mongod --replSet rs0 --bind_ip_all
-    networks:
-      - flowbitai-network
-
-  mongo-express:
-    image: mongo-express:latest
-    container_name: flowbitai-mongo-express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/flowbitai?directConnection=true
-      ME_CONFIG_BASICAUTH_USERNAME: webadmin
-      ME_CONFIG_BASICAUTH_PASSWORD: webpassword123
-      ME_CONFIG_BASICAUTH: true
-    depends_on:
-      - mongodb
     networks:
       - flowbitai-network
 
@@ -36,12 +21,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: "mongodb://mongodb:27017/flowbitai?directConnection=true"
-      JWT_SECRET: "myjwtsecret"
-      PORT: 3000
-      NODE_ENV: production
-      WEBHOOK_SECRET: "flowbit-webhook-secret"
-      API_URL: "http://api:3000"
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: ${PORT}
+      NODE_ENV: ${NODE_ENV}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+      API_URL: ${API_URL}
     volumes:
       - .:/app
       - /app/node_modules
@@ -58,13 +43,49 @@ services:
     ports:
       - "5678:5678"
     environment:
-      N8N_USER_MANAGEMENT_DISABLED: true
-      N8N_DIAGNOSTICS_ENABLED: false
-      N8N_VERSION_NOTIFICATIONS_ENABLED: false
-      N8N_TEMPLATES_ENABLED: false
-      WEBHOOK_URL: http://localhost:5678
+      N8N_USER_MANAGEMENT_DISABLED: ${N8N_USER_MANAGEMENT_DISABLED}
+      N8N_DIAGNOSTICS_ENABLED: ${N8N_DIAGNOSTICS_ENABLED}
+      N8N_VERSION_NOTIFICATIONS_ENABLED: ${N8N_VERSION_NOTIFICATIONS_ENABLED}
+      N8N_TEMPLATES_ENABLED: ${N8N_TEMPLATES_ENABLED}
+      WEBHOOK_URL: ${WEBHOOK_URL}
     volumes:
       - n8n_data:/home/node/.n8n
+    networks:
+      - flowbitai-network
+
+  react-shell:
+    build:
+      context: ./react-shell
+    container_name: flowbitai-react-shell
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      REACT_APP_API_URL: ${API_URL}
+    volumes:
+      - ./react-shell:/app
+      - /app/node_modules
+    command: npm start
+    depends_on:
+      - api
+    networks:
+      - flowbitai-network
+
+  support-app:
+    build:
+      context: ./support-app
+    container_name: flowbitai-support-app
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      REACT_APP_API_URL: ${API_URL}
+    volumes:
+      - ./support-app:/app
+      - /app/node_modules
+    command: npm start
+    depends_on:
+      - api
     networks:
       - flowbitai-network
 

@@ -1,12 +1,17 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { authenticateJWT } from "../middleware/authMiddleware";
+import { AuditLogger } from "../models/AuditLog";
 import axios from "axios";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "flowbit-webhook-secret";
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+
+if (!WEBHOOK_SECRET) {
+  throw new Error("WEBHOOK_SECRET environment variable is required");
+}
 
 router.post("/", authenticateJWT, async (req, res) => {
   const { title, description } = req.body;
@@ -18,10 +23,23 @@ router.post("/", authenticateJWT, async (req, res) => {
         title,
         description,
         status: "pending",
+        priority: "high",
         customerId: user.customerId,
         createdBy: user.userId,
       },
     });
+
+    await AuditLogger.logFromRequest(
+      req,
+      "TICKET_CREATED",
+      "ticket",
+      ticket.id,
+      {
+        title,
+        description,
+        status: "pending",
+      }
+    );
 
     try {
       await axios.post("http://n8n:5678/webhook/ticket-created", {
@@ -49,10 +67,16 @@ router.get("/", authenticateJWT, async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.json(tickets);
+    res.json({
+      success: true,
+      data: tickets,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Could not fetch tickets" });
+    res.status(500).json({
+      success: false,
+      error: "Could not fetch tickets",
+    });
   }
 });
 
@@ -75,6 +99,21 @@ router.post("/webhook/ticket-done", async (req, res) => {
         customerId: customerId,
       },
       data: { status },
+    });
+
+    await AuditLogger.log({
+      action: "TICKET_STATUS_UPDATED",
+      userId: "system",
+      tenant: customerId,
+      resourceType: "ticket",
+      resourceId: ticketId,
+      details: {
+        previousStatus: "pending",
+        newStatus: status,
+        source: "webhook",
+      },
+      ipAddress: req.ip,
+      userAgent: req.get("User-Agent"),
     });
 
     res.json({

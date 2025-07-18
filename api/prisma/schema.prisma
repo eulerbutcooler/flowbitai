@@ -19,12 +19,39 @@ model Ticket {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
-  status      String   
+  status      Status 
+  priority    Priority
   customerId  String
   createdBy   String   
   createdAt   DateTime @default(now())
 }
 
+model AuditLog {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  action       String
+  userId       String
+  tenant       String
+  timestamp    DateTime @default(now())
+  resourceType String?
+  resourceId   String?
+  details      Json?
+  ipAddress    String?
+  userAgent    String?
+  
+  @@index([tenant, timestamp])
+  @@index([userId, timestamp])
+  @@index([action, tenant, timestamp])
+}
+
+enum Priority {
+  low
+  high
+}
+
+enum Status {
+  complete
+  pending
+}
 
 enum Role {
     USER
